@@ -1,0 +1,27 @@
+{
+    "name": "ai-board-backend",
+    "version": "1.0.0",
+    "main": "app.js",
+    "scripts": {
+        "start": "node src/app.ts",
+        "typecheck": "tsc --noEmit",
+        "lint": "oxlint --deny-warnings src",
+        "format:check": "prettier --check .",
+        "format": "prettier --write .",
+        "check": "npm run typecheck && npm run lint && npm run format:check"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "type": "module",
+    "dependencies": {
+        "express": "^5.2.1"
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.6",
+        "@types/node": "^26.6.3",
+        "oxlint": "^1.86.0",
+        "prettier": "^3.9.9",
+        "typescript": "^7.0.2"
+    }
+}
