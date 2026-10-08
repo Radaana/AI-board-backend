@@ -2,7 +2,8 @@ import express, { type Express, type Request, type Response } from 'express';
 import type { ICreateDialog, IDialog } from './model/dialog.ts';
 import crypto from 'crypto';
 
-const dialogsMap: Record<IDialog['id'], IDialog> = {};
+const dialogsMap: Map<IDialog['id'], IDialog> = new Map();
+
 const clientRequestIdsMap: Map<string, string> = new Map();
 
 const app: Express = express();
@@ -13,31 +14,31 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 app.get('/dialogs', (req: Request, res: Response) => {
-    res.status(200).send(Object.values(dialogsMap));
+    res.status(200).send(Array.from(dialogsMap.values()));
 });
 
 app.post('/dialogs', (req: Request, res: Response) => {
     if (!req.body || !(typeof req.body === 'object') || !('clientRequestId' in req.body) || !('text' in req.body)) {
-        return res.status(400).send();
+        return res.status(400).send('Invalid request body. Expected { clientRequestId: string, text: string }');
     }
 
     const body: ICreateDialog = req.body;
     const { clientRequestId, text } = body;
 
     if (typeof clientRequestId !== 'string' || typeof text !== 'string') {
-        return res.status(400).send();
+        return res.status(400).send('Invalid request body content. Expected { clientRequestId: string, text: string }');
     }
 
     const textTrimmed = text.trim();
 
     if (!clientRequestId || !textTrimmed) {
-        return res.status(400).send();
+        return res.status(400).send("Invalid request body content. Empty 'text' or 'clientRequestId' is not allowed.");
     }
 
     const dialogId = clientRequestIdsMap.get(clientRequestId);
     if (dialogId) {
-        const dialog = dialogsMap[dialogId];
-        if (dialog.messages[0].text !== textTrimmed) {
+        const dialog = dialogsMap.get(dialogId);
+        if (dialog?.messages[0].text !== textTrimmed) {
             return res.status(409).send(dialog);
         }
         return res.status(200).send(dialog);
@@ -55,7 +56,7 @@ app.post('/dialogs', (req: Request, res: Response) => {
             ],
             title: 'New Dialog',
         };
-        dialogsMap[newDialogId] = newDialog;
+        dialogsMap.set(newDialogId, newDialog);
         return res.status(201).send(newDialog);
     }
 });
